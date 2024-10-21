@@ -9,7 +9,8 @@ def home():
 
 @app.route("/categories")
 def categories():
-    return render_template("categories.html")
+    categories = list(Category.query.order_by(Category.category_name).all())
+    return render_template("categories.html", categories=categories) #1st 'categories' = is the variable name we can use within the HTML template, 2nd is the list defined infunction above (shows why it's important to name similarly)
 
 
 @app.route("/add_category", methods=["GET", "POST"])
@@ -21,3 +22,13 @@ def add_category():
         return redirect(url_for("categories"))
     return render_template("add_category.html") # step 1 - uses default 'GET' and renders add category template. 
 # consider adding defensive programming to handle brute-force attacks and some error handling
+
+
+@app.route("/edit_category/<int:category_id>", methods=["GET", "POST"])
+def edit_category(category_id):
+    category = Category.query.get_or_404(category_id) #attempts to find the specified record using the data provided, and if no match is found, it will trigger a 404 error page.
+    if request.method == "POST":
+        category.category_name = request.form.get("category_name")
+        db.session.commit()
+        return redirect(url_for("categories"))
+    return render_template("edit_category.html", category=category)
